@@ -20,7 +20,7 @@ from mlxtend.frequent_patterns import association_rules
 from scipy.special import softmax
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.pipeline import Pipeline
-
+from sklearn.metrics import classification_report
 
 # https://www.kaggle.com/code/kirklin/game-winner-prediction-best-76-9-w-eda-finetune#Import-Data
 
@@ -59,24 +59,20 @@ def evaluate_model(model, predictions):
     plt.show()
 
 
-# Usunięcie zbędnych kolumn, takich jak matchId
 data = pd.read_csv("match_data_v5.csv")
 remove1 = data[data['blueTeamTurretPlatesDestroyed'] > 15].index
 data.drop(remove1, inplace=True)
 remove2 = data[data['redTeamTurretPlatesDestroyed'] > 15].index
 data.drop(remove2, inplace=True)
-print("Training set size after removing wrong data:", data.shape)
-# Podział danych na cechy (X) i etykiety (y)
+print(data.shape)
 X = data.drop(columns=["matchId", "blueWin"])
 y = data["blueWin"]
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
 scaler = StandardScaler()
 X_train_normalized = scaler.fit_transform(X_train)
 X_test_normalized = scaler.transform(X_test)
 
-
+# sns.set_context("notebook", font_scale=1.5)
 # sns.pairplot(data=data, vars=('blueTeamControlWardsPlaced','blueTeamWardsPlaced'), hue='blueWin')
 # plt.show()
 # sns.pairplot(data=data, vars=('blueTeamTotalKills','blueTeamDragonKills','blueTeamHeraldKills'), hue='blueWin')
@@ -197,6 +193,12 @@ recall_score: 0.7310606060606061
 #                     callbacks=[tf.keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)])
 # loss, accuracy = model.evaluate(X_test_normalized, y_test, verbose=0)
 # predictions = model.predict(X_test_normalized)
+# threshold = 0.5
+#
+# binary_predictions = (predictions > threshold).astype(int)
+#
+# conf_matrix_m = confusion_matrix(y_test, binary_predictions)
+#
 # plt.plot(history.history['accuracy'], label='accuracy')
 # plt.plot(history.history['val_accuracy'], label='val_accuracy')
 # plt.xlabel('Epoch')
@@ -204,11 +206,13 @@ recall_score: 0.7310606060606061
 # plt.legend(loc='lower right')
 # plt.show()
 # evaluate_model(history, predictions)
-# print("Model Accuracy:", accuracy)
+# print("Model Accuracy:", conf_matrix_m)
 """
 0.7415892481803894
 Model Accuracy: 0.7574414014816284
 area: 0.85
+[[1811  568]
+ [ 593 1765]]
 """
 
 best_log_reg_model = LogisticRegression(solver='liblinear', penalty='l2', max_iter=400, C=0.1)
@@ -220,13 +224,19 @@ accuracy = accuracy_score(y_test, y_pred)
 evaluate_model(best_log_reg_model, y_prob)
 conf_matrix = confusion_matrix(y_test, y_pred)
 recall_log_reg = recall_score(y_test, y_pred)
-# print(accuracy, recall_log_reg, conf_matrix)
+print(accuracy, recall_log_reg, conf_matrix)
+print(classification_report(y_test, y_pred))
+TN = conf_matrix[0][0]
+FP = conf_matrix[0][1]
+specificity = TN / (TN + FP)
+print(specificity)
 
 """
 Accuracy: 0.7584969389909225
 Recall: 0.7502120441051738
 [[1824  555]
  [ 589 1769]]
+ Swoistość 0.766708
 """
 binarizer = Binarizer(threshold=0)
 X_train_bin = binarizer.fit_transform(X_train_normalized)
@@ -236,7 +246,7 @@ rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 # print(rules)
-rule_with_max_zhangs_metric = rules[rules['lift'] == rules['lift'].max()]
+rule_with_max_zhangs_metric = rules[rules['lift'] == rules['lift'].min()]
 
 print("Rule with max Zhang's metric:")
 for index, row in rule_with_max_zhangs_metric.iterrows():
@@ -298,12 +308,29 @@ ponieważ ogranicza wpływ ekstremalnych wartości na proces uczenia.
 """
 Antecedents: frozenset({'blueTeamTotalDamageToChamps', 'redTeamTotalGold', 'blueTeamTotalKills'})
 Consequents: frozenset({'blueTeamTotalGold', 'redTeamTotalKills', 'redTeamTotalDamageToChamps'})
-Antecedent support: 0.16566392231370067
-Consequent support: 0.1631834494405742
-Support: 0.10671310956301457
 Confidence: 0.6441541892322395
 Lift: 3.9474235373779027
-Leverage: 0.07967949927200958
 Conviction: 2.351626814866641
 Zhang's metric: 0.8949273845752262
+"""
+
+"""
+Masz rację, przepraszam za nieprecyzyjne stwierdzenie. Lift wynoszący 1 i niska wartość Zhang's metric sugerują, że nie ma silnej zależności między przyczynami a skutkami w tej konkretnej regule asocjacyjnej. Oznacza to, że występowanie wardów kontrolnych przez obie drużyny niekoniecznie prowadzi do zniszczenia wież i zabicia smoka przez drużynę czerwoną.
+
+Wartości te wskazują, że nawet jeśli występują pewne powiązania między wardami kontrolnymi a zdarzeniami w grze, są one słabe lub przypadkowe w kontekście tej konkretnej reguły. Dlatego faktycznie możemy stwierdzić, że zależność między wardami kontrolnymi a zniszczeniem wież i zabiciem smoka jest bardzo mała lub nieistniejąca w analizowanym zestawie danych.
+"""
+
+
+"""
+redTeamTurretsPlatesDestroyed to znaczy ile oni stracili plateów
+
+"""
+
+"""
+Antecedents: frozenset({'redTeamControlWardsPlaced', 'blueTeamControlWardsPlaced'})
+Consequents: frozenset({'redTeamDragonKills', 'redTeamTowersDestroyed'})
+Confidence: 0.43046650453239005
+Lift: 1.00042675430881
+Conviction: 1.0003224131228063
+Zhang's metric: 0.0005603252214893278
 """
