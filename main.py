@@ -262,18 +262,6 @@ for index, row in rule_with_max_zhangs_metric.iterrows():
     print("Zhang's metric:", row['zhangs_metric'])
     print("\n")
 """
-Im wyższa wartość AUC, tym lepiej model radzi sobie z rozróżnianiem między klasami. 
-W przypadku AUC, wartość 0.5 oznacza model losowy, a wartość 1.0 oznacza idealny model.
-
-CZUŁOŚĆ wykrywalnosc odpowiedzi TAK
-
-
-Dodano warstwy Dropout w modelu, aby losowo wyłączać część neuronów w trakcie treningu i zapobiegać nadmiernemu dopasowaniu.
-Zastosowano regularyzację L2, aby kontrolować wielkość wag i zapobiec nadmiernemu wzrostowi.
-Dodano wczesne zatrzymywanie (EarlyStopping), aby monitorować proces uczenia się i zatrzymać trening, gdy nie następuje poprawa wydajności na danych walidacyjnych.
-"""
-
-"""
 antecedents: To zestaw cech (lub pojedyncza cecha), które występują w poprzednim elemencie reguły.
 
 consequents: To zestaw cech (lub pojedyncza cecha), które występują w następnym elemencie reguły.
@@ -315,15 +303,7 @@ Zhang's metric: 0.8949273845752262
 """
 
 """
-Masz rację, przepraszam za nieprecyzyjne stwierdzenie. Lift wynoszący 1 i niska wartość Zhang's metric sugerują, że nie ma silnej zależności między przyczynami a skutkami w tej konkretnej regule asocjacyjnej. Oznacza to, że występowanie wardów kontrolnych przez obie drużyny niekoniecznie prowadzi do zniszczenia wież i zabicia smoka przez drużynę czerwoną.
-
-Wartości te wskazują, że nawet jeśli występują pewne powiązania między wardami kontrolnymi a zdarzeniami w grze, są one słabe lub przypadkowe w kontekście tej konkretnej reguły. Dlatego faktycznie możemy stwierdzić, że zależność między wardami kontrolnymi a zniszczeniem wież i zabiciem smoka jest bardzo mała lub nieistniejąca w analizowanym zestawie danych.
-"""
-
-
-"""
 redTeamTurretsPlatesDestroyed to znaczy ile oni stracili plateów
-
 """
 
 """
